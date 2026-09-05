@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { GamePoster, PosterSkeleton } from '../components/GamePoster'
 import { PlatformPhoto } from '../components/PlatformPhoto'
 import { arcadeByCategory, ARCADE_CATEGORY_LABEL } from '../data/arcadeCabinets'
+import { ARCADE_GAME_PLANS } from '../data/arcadeGamePlans'
 import { TYPE_LABEL, familyOf, platformBySlug } from '../data/platforms'
 import { formatYearRange } from '../lib/format'
 import { gamesOnPlatform } from '../lib/wikidata'
@@ -72,14 +73,26 @@ export function PlatformPage() {
       {platform.slug === 'arcade' && (
         <section>
           <div className="section-head">
-            <h2>Bornes, planos y esquemas</h2>
+            <h2>Planes por modelo de juego</h2>
             <Link to="/arcade">Ver catálogo completo</Link>
+          </div>
+          <div className="platform-grid">
+            {ARCADE_GAME_PLANS.slice(0, 12).map((g) => (
+              <Link className="platform-card has-photo" key={g.id} to={`/arcade/${g.id}`}>
+                <PlatformPhoto src={g.image} name={g.name} />
+                <strong>{g.name}</strong>
+                <span>{g.year} · plan de panel</span>
+              </Link>
+            ))}
+          </div>
+          <div className="section-head" style={{ marginTop: 28 }}>
+            <h2>Formas y chasis</h2>
           </div>
           {arcadeByCategory().slice(0, 2).map((group) => (
             <div key={group.category} style={{ marginBottom: 18 }}>
               <p className="game-kicker">{ARCADE_CATEGORY_LABEL[group.category]}</p>
               <div className="platform-grid">
-                {group.items.slice(0, 6).map((cab) => (
+                {group.items.slice(0, 4).map((cab) => (
                   <Link className="platform-card has-photo" key={cab.id} to={`/arcade/${cab.id}`}>
                     <PlatformPhoto src={cab.image} name={cab.name} />
                     <strong>{cab.name}</strong>

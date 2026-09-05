@@ -462,6 +462,18 @@ h1, h2, h3 { font-weight: 700; letter-spacing: 0.02em; }
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
+.game-plan-wrap {
+  background: #0e1216;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.game-plan-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 .histogram { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
 .histogram i {
   display: block;
