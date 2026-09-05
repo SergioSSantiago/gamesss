@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { CoverImage } from '../components/CoverImage'
 import { Stars } from '../components/Stars'
 import { useLibrary } from '../context/LibraryContext'
 import { formatMonth, statusLabel } from '../lib/format'
@@ -38,7 +39,7 @@ export function Diary() {
                 <div className="day">{day}</div>
                 <Link className="mini poster" to={`/game/${log.game.id}`}>
                   <div className="poster-art">
-                    {log.game.image ? <img src={log.game.image} alt="" /> : <div className="poster-fallback" />}
+                    <CoverImage name={log.game.name} image={log.game.image} covers={log.game.covers} />
                   </div>
                 </Link>
                 <div>

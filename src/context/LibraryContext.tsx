@@ -227,8 +227,8 @@ export function useLibrary() {
   return ctx
 }
 
-export function toRef(game: { id: string; name: string; image: string | null; year: number | null }): GameRef {
-  return { id: game.id, name: game.name, image: game.image, year: game.year }
+export function toRef(game: { id: string; name: string; image: string | null; covers?: string[]; year: number | null }): GameRef {
+  return { id: game.id, name: game.name, image: game.image, covers: game.covers, year: game.year }
 }
 
 export function wishlistHas(logs: LogEntry[], userId: string | undefined, gameId: string): boolean {

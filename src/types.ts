@@ -29,6 +29,7 @@ export type GameRef = {
   id: string
   name: string
   image: string | null
+  covers?: string[]
   year: number | null
 }
 

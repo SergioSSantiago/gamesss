@@ -1,6 +1,7 @@
 import { FEATURED_GAME_IDS, FEATURED_NAMES } from '../data/featured'
 import { PLATFORMS } from '../data/platforms'
 import type { GameDetail, GameSummary } from '../types'
+import { looksLikeCover, steamCoverUrls, uniqueUrls } from './covers'
 import { yearFromDate } from './format'
 
 const WD_API = 'https://www.wikidata.org/w/api.php'
@@ -59,10 +60,13 @@ function claimTime(entity: WdEntity, prop: string): string | null {
   return null
 }
 
-function claimImage(entity: WdEntity): string | null {
-  const v = entity.claims?.P18?.[0]?.mainsnak?.datavalue?.value
-  if (typeof v !== 'string' || !v) return null
-  return commonsThumb(v, 600)
+function claimStrings(entity: WdEntity, prop: string): string[] {
+  return (entity.claims?.[prop] ?? [])
+    .map((c) => {
+      const v = c.mainsnak?.datavalue?.value
+      return typeof v === 'string' ? v : null
+    })
+    .filter((v): v is string => Boolean(v))
 }
 
 export function commonsThumb(fileOrUrl: string, width = 400): string {
@@ -131,13 +135,92 @@ async function wikipediaThumb(title: string): Promise<{ image: string | null; ex
   }
 }
 
-function toSummary(entity: WdEntity, labels: Map<string, string>, image: string | null): GameSummary {
+async function wikipediaCovers(titles: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const unique = [...new Set(titles.filter(Boolean))]
+  for (let i = 0; i < unique.length; i += 40) {
+    const chunk = unique.slice(i, i + 40)
+    const json = (await wdApiFrom('https://en.wikipedia.org/w/api.php', {
+      action: 'query',
+      titles: chunk.join('|'),
+      prop: 'pageimages',
+      pithumbsize: '800',
+      piprop: 'thumbnail|name|original',
+    })) as {
+      query?: {
+        normalized?: { from: string; to: string }[]
+        pages?: Record<string, { title: string; original?: { source?: string }; thumbnail?: { source?: string } }>
+      }
+    }
+    const normalized = new Map((json.query?.normalized ?? []).map((n) => [n.from, n.to]))
+    const byTitle = new Map<string, string>()
+    for (const page of Object.values(json.query?.pages ?? {})) {
+      const src = page.original?.source || page.thumbnail?.source
+      if (src) byTitle.set(page.title, src)
+    }
+    for (const title of chunk) {
+      const src = byTitle.get(normalized.get(title) ?? title) || byTitle.get(title)
+      if (src) map.set(title, src)
+    }
+  }
+  return map
+}
+
+async function wdApiFrom(base: string, params: Record<string, string>): Promise<unknown> {
+  const url = new URL(base)
+  url.search = new URLSearchParams({ format: 'json', origin: '*', ...params }).toString()
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Wiki ${res.status}`)
+  return res.json()
+}
+
+const commonsCoverCache = new Map<string, string | null>()
+
+async function commonsCoverSearch(name: string): Promise<string | null> {
+  const key = name.toLowerCase()
+  if (commonsCoverCache.has(key)) return commonsCoverCache.get(key) ?? null
+  try {
+    const json = (await wdApiFrom('https://commons.wikimedia.org/w/api.php', {
+      action: 'query',
+      list: 'search',
+      srsearch: `"${name}" (cover OR "box art" OR carátula OR jaquette)`,
+      srnamespace: '6',
+      srlimit: '8',
+    })) as { query?: { search?: { title: string }[] } }
+    const file = (json.query?.search ?? [])
+      .map((r) => r.title.replace(/^File:/, ''))
+      .find((title) => looksLikeCover(title) && !/\.(webm|ogv|svg)$/i.test(title))
+    const url = file ? commonsThumb(file, 600) : null
+    commonsCoverCache.set(key, url)
+    return url
+  } catch {
+    commonsCoverCache.set(key, null)
+    return null
+  }
+}
+
+function rankedCovers(entity: WdEntity, wikiCover: string | null, commonsCover: string | null): string[] {
+  const steam = claimStrings(entity, 'P1733')[0]
+  const p18 = claimStrings(entity, 'P18')
+  const coverP18 = p18.filter(looksLikeCover).map((f) => commonsThumb(f, 600))
+  const otherP18 = p18.filter((f) => !looksLikeCover(f)).map((f) => commonsThumb(f, 600))
+  return uniqueUrls([
+    ...(steam ? steamCoverUrls(steam) : []),
+    commonsCover,
+    ...coverP18,
+    wikiCover,
+    ...otherP18,
+  ])
+}
+
+function toSummary(entity: WdEntity, labels: Map<string, string>, covers: string[]): GameSummary {
   const released = claimTime(entity, 'P577')
   const platformIds = claimIds(entity, 'P400')
   return {
     id: entity.id,
     name: labelOf(entity, 'es', 'en'),
-    image,
+    image: covers[0] ?? null,
+    covers,
     year: yearFromDate(released),
     description: descOf(entity),
     released,
@@ -165,18 +248,28 @@ export async function getGames(ids: string[]): Promise<GameDetail[]> {
     const labels = new Map<string, string>()
     for (const e of extras) labels.set(e.id, labelOf(e, 'es', 'en'))
 
+    const wikiTitles = entities
+      .map((e) => e.sitelinks?.enwiki?.title || e.sitelinks?.eswiki?.title)
+      .filter((t): t is string => Boolean(t))
+    const wikiCoverMap = await wikipediaCovers(wikiTitles).catch(() => new Map<string, string>())
+
     const wikiJobs = entities.map(async (entity) => {
-      let image = claimImage(entity)
       let extract = ''
       let wikipediaUrl: string | null = null
-      const wikiTitle = entity.sitelinks?.eswiki?.title || entity.sitelinks?.enwiki?.title
+      const wikiTitle = entity.sitelinks?.enwiki?.title || entity.sitelinks?.eswiki?.title
+      const enName = labelOf(entity, 'en', 'es')
       if (wikiTitle) {
         const wp = await wikipediaThumb(wikiTitle)
         extract = wp.extract
         wikipediaUrl = wp.url
-        if (!image) image = wp.image
       }
-      const summary = toSummary(entity, labels, image)
+      const hasSteam = Boolean(claimStrings(entity, 'P1733')[0])
+      const hasCoverFile = claimStrings(entity, 'P18').some(looksLikeCover)
+      const commonsCover = !hasSteam && !hasCoverFile && !wikiCoverMap.get(wikiTitle ?? '')
+        ? await commonsCoverSearch(enName)
+        : null
+      const covers = rankedCovers(entity, wikiCoverMap.get(wikiTitle ?? '') ?? null, commonsCover)
+      const summary = toSummary(entity, labels, covers)
       const aliases = [
         ...(entity.aliases?.es ?? []),
         ...(entity.aliases?.en ?? []),

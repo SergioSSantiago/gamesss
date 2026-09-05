@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { CoverImage } from '../components/CoverImage'
 import { LogModal } from '../components/LogModal'
 import { ReviewCard } from '../components/ReviewCard'
 import { Stars } from '../components/Stars'
@@ -62,7 +63,7 @@ export function GamePage() {
       <div className="game-layout">
         <div className="game-poster-col">
           <div className="poster-art">
-            {game.image ? <img src={game.image} alt="" /> : <div className="poster-fallback">{game.name}</div>}
+            <CoverImage name={game.name} image={game.image} covers={game.covers} />
           </div>
           <div className="game-actions">
             <button className="btn" onClick={() => requireUser(() => setOpen(true))}>

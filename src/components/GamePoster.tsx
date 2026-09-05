@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { GameRef } from '../types'
+import { CoverImage } from './CoverImage'
 
 export function GamePoster({
   game,
@@ -13,11 +14,7 @@ export function GamePoster({
   return (
     <Link className={`poster ${large ? 'lg' : ''}`} to={`/game/${game.id}`}>
       <div className="poster-art">
-        {game.image ? (
-          <img src={game.image} alt="" loading="lazy" />
-        ) : (
-          <div className="poster-fallback">{game.name}</div>
-        )}
+        <CoverImage name={game.name} image={game.image} covers={game.covers} />
       </div>
       {showMeta && (
         <div className="poster-meta">
