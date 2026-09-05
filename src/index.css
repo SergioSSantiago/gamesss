@@ -422,7 +422,23 @@ h1, h2, h3 { font-weight: 700; letter-spacing: 0.02em; }
   padding: 22px 0 32px;
   text-align: center;
 }
-.histogram { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
+.special-grid .special-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.special-grid .special-card .poster { width: auto; min-width: 0; }
+.special-tag {
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: #2a2018;
+  padding: 3px 7px;
+  border-radius: 3px;
+}
 .histogram i {
   display: block;
   width: 18px;

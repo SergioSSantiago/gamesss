@@ -11,6 +11,7 @@ import { Diary } from './pages/Diary'
 import { Lists } from './pages/Lists'
 import { ListPage } from './pages/ListPage'
 import { SignIn } from './pages/SignIn'
+import { Special } from './pages/Special'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/games" element={<Games />} />
+            <Route path="/special" element={<Special />} />
             <Route path="/game/:id" element={<GamePage />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/platform/:slug" element={<PlatformPage />} />

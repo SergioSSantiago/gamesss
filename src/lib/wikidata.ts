@@ -1,4 +1,5 @@
 import { FEATURED_GAME_IDS, FEATURED_NAMES } from '../data/featured'
+import { SPECIAL_GAME_IDS } from '../data/special'
 import { PLATFORMS } from '../data/platforms'
 import type { GameDetail, GameSummary } from '../types'
 import { looksLikeCover, steamCoverUrls, uniqueUrls } from './covers'
@@ -431,6 +432,15 @@ export async function classics(): Promise<GameSummary[]> {
     'Q1166232', // Dark Souls
   ]
   const games = await getGames(ids)
+  searchCache.set(key, games)
+  return games
+}
+
+export async function specialGames(): Promise<GameSummary[]> {
+  const key = 'special'
+  const cached = searchCache.get(key)
+  if (cached) return cached
+  const games = await getGames(SPECIAL_GAME_IDS)
   searchCache.set(key, games)
   return games
 }

@@ -4,7 +4,7 @@ import { GameRow } from '../components/GameRow'
 import { PosterSkeleton } from '../components/GamePoster'
 import { ReviewCard } from '../components/ReviewCard'
 import { useLibrary } from '../context/LibraryContext'
-import { classics, popularGames, recentGames } from '../lib/wikidata'
+import { classics, popularGames, recentGames, specialGames } from '../lib/wikidata'
 import type { GameSummary } from '../types'
 
 export function Home() {
@@ -12,12 +12,14 @@ export function Home() {
   const [popular, setPopular] = useState<GameSummary[] | null>(null)
   const [fresh, setFresh] = useState<GameSummary[] | null>(null)
   const [old, setOld] = useState<GameSummary[] | null>(null)
+  const [special, setSpecial] = useState<GameSummary[] | null>(null)
 
   useEffect(() => {
     let alive = true
     popularGames().then((g) => alive && setPopular(g)).catch(() => alive && setPopular([]))
     recentGames().then((g) => alive && setFresh(g)).catch(() => alive && setFresh([]))
     classics().then((g) => alive && setOld(g)).catch(() => alive && setOld([]))
+    specialGames().then((g) => alive && setSpecial(g)).catch(() => alive && setSpecial([]))
     return () => { alive = false }
   }, [])
 
@@ -46,6 +48,7 @@ export function Home() {
       {popular ? <GameRow title="Populares" to="/games" games={popular} /> : <PosterSkeleton />}
       {fresh ? <GameRow title="Lanzamientos recientes" games={fresh} /> : null}
       {old ? <GameRow title="Clásicos" games={old} /> : null}
+      {special ? <GameRow title="Juegos especiales" to="/special" games={special} /> : <PosterSkeleton count={8} />}
 
       {reviews.length > 0 && (
         <section>

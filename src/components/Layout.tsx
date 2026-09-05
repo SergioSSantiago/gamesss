@@ -34,6 +34,7 @@ export function Layout() {
           </form>
           <nav className="nav">
             <NavLink to="/games" className={({ isActive }) => (isActive ? 'active' : '')}>Juegos</NavLink>
+            <NavLink to="/special" className={({ isActive }) => (isActive ? 'active' : '')}>Especiales</NavLink>
             <NavLink to="/platforms" className={({ isActive }) => (isActive ? 'active' : '')}>Consolas</NavLink>
             {currentUser ? (
               <>
