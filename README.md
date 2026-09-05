@@ -2,6 +2,9 @@
 
 Diario de videojuegos al estilo Letterboxd: busca cualquier título, recorre consolas de todas las generaciones y registra partidas, notas y listas.
 
+- Sitio: https://gamesss-tau.vercel.app
+- Código: https://github.com/SergioSSantiago/gamesss
+
 El catálogo sale de [Wikidata](https://www.wikidata.org/) y Wikipedia (portadas y sinopsis). Tu perfil, diario y listas se guardan en este navegador.
 
 ## Cómo arrancarlo
