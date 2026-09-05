@@ -1,35 +1,34 @@
-/** Juegos icónicos (Wikidata) para la portada si SPARQL falla. */
+/** Juegos icónicos (Wikidata) — IDs verificados como videojuegos (P31=Q7889). */
 export const FEATURED_GAME_IDS = [
   'Q17185964', // Breath of the Wild
-  'Q114353698', // Tears of the Kingdom
-  'Q26832850', // Super Mario Odyssey
-  'Q173644', // GTA V
-  'Q19793162', // The Witcher 3
-  'Q27438124', // Red Dead Redemption 2
-  'Q104776283', // Elden Ring
-  'Q64351607', // Baldur's Gate 3
-  'Q24907540', // Stardew Valley
-  'Q209271', // The Last of Us
-  'Q54958417', // God of War (2018)
-  'Q85846012', // Hades
-  'Q29390119', // Hollow Knight
-  'Q47001622', // Celeste
+  'Q64577191', // Tears of the Kingdom
+  'Q28234671', // Super Mario Odyssey
+  'Q17452', // GTA V
+  'Q4267401', // The Witcher 3
+  'Q27438121', // Red Dead Redemption 2
+  'Q64826862', // Elden Ring
+  'Q64441774', // Baldur's Gate 3
+  'Q23013817', // Stardew Valley
+  'Q1986744', // The Last of Us (2013)
+  'Q18345138', // God of War (2018)
+  'Q59756366', // Hades
+  'Q29300592', // Hollow Knight
+  'Q28451532', // Celeste
   'Q279446', // Portal 2
-  'Q22124623', // Persona 5
-  'Q55707820', // Super Smash Bros. Ultimate
-  'Q62085659', // Animal Crossing: New Horizons
-  'Q257288', // Final Fantasy VII
-  'Q847085', // Chrono Trigger
+  'Q15225985', // Persona 5
+  'Q54093632', // Super Smash Bros. Ultimate
+  'Q64566657', // Animal Crossing: New Horizons
+  'Q214232', // Final Fantasy VII
+  'Q761815', // Chrono Trigger
   'Q193581', // Half-Life 2
-  'Q905449', // Dark Souls
-  'Q42572534', // Cyberpunk 2077
-  'Q79786', // Tetris
+  'Q1166232', // Dark Souls
+  'Q3182559', // Cyberpunk 2077
   'Q11168', // Super Mario Bros.
   'Q213911', // Ocarina of Time
-  'Q848478', // Super Metroid
-  'Q1648210', // Castlevania: Symphony of the Night
-  'Q300528', // Street Fighter II
-  'Q27877496', // The Last of Us Part II
+  'Q1194825', // Super Metroid
+  'Q2007022', // Castlevania: Symphony of the Night
+  'Q1133204', // Street Fighter II
+  'Q27950674', // The Last of Us Part II
 ]
 
 export const FEATURED_NAMES = [

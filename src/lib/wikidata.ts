@@ -69,6 +69,14 @@ function claimStrings(entity: WdEntity, prop: string): string[] {
     .filter((v): v is string => Boolean(v))
 }
 
+/** Reject towns, political unions, songs, etc. that slipped in via wrong QIDs. */
+function isVideoGameEntity(entity: WdEntity): boolean {
+  const types = claimIds(entity, 'P31')
+  if (types.includes(GAME_CLASS)) return true
+  const desc = descOf(entity).toLowerCase()
+  return /\b(video ?game|videogame|jeu vid[eé]o|videojuego)\b/.test(desc)
+}
+
 export function commonsThumb(fileOrUrl: string, width = 400): string {
   if (fileOrUrl.includes('Special:FilePath')) {
     const https = fileOrUrl.replace('http://', 'https://')
@@ -237,7 +245,8 @@ function toSummary(entity: WdEntity, labels: Map<string, string>, covers: string
 export async function getGames(ids: string[]): Promise<GameDetail[]> {
   const missing = ids.filter((id) => !mem.has(id))
   if (missing.length) {
-    const entities = await getEntitiesRaw(missing)
+    const raw = await getEntitiesRaw(missing)
+    const entities = raw.filter(isVideoGameEntity)
     const extraIds = new Set<string>()
     for (const e of entities) {
       for (const prop of ['P400', 'P136', 'P178', 'P123']) {
@@ -408,18 +417,18 @@ export async function classics(): Promise<GameSummary[]> {
   const cached = searchCache.get(key)
   if (cached) return cached
   const ids = [
-    'Q11168',
-    'Q79786',
-    'Q213911',
-    'Q848478',
-    'Q847085',
-    'Q257288',
-    'Q1648210',
-    'Q300528',
-    'Q193581',
-    'Q279446',
-    'Q173644',
-    'Q209271',
+    'Q11168', // Super Mario Bros.
+    'Q213911', // Ocarina of Time
+    'Q1194825', // Super Metroid
+    'Q761815', // Chrono Trigger
+    'Q214232', // Final Fantasy VII
+    'Q2007022', // Symphony of the Night
+    'Q1133204', // Street Fighter II
+    'Q193581', // Half-Life 2
+    'Q279446', // Portal 2
+    'Q17452', // GTA V
+    'Q1986744', // The Last of Us
+    'Q1166232', // Dark Souls
   ]
   const games = await getGames(ids)
   searchCache.set(key, games)
