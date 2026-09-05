@@ -1,17 +1,6 @@
 import { Link } from 'react-router-dom'
-import { platformsByManufacturer } from '../data/platforms'
-import { formatYearRange } from '../lib/format'
-
-const TYPE_LABEL: Record<string, string> = {
-  home: 'Sobremesa',
-  handheld: 'Portátil',
-  hybrid: 'Híbrida',
-  computer: 'Ordenador',
-  mobile: 'Móvil',
-  vr: 'VR',
-  arcade: 'Arcade',
-  cloud: 'Nube',
-}
+import { PlatformPhoto } from '../components/PlatformPhoto'
+import { TYPE_LABEL, platformsByManufacturer } from '../data/platforms'
 
 export function Platforms() {
   const groups = platformsByManufacturer()
@@ -20,24 +9,30 @@ export function Platforms() {
       <div className="hero">
         <h1>Todas las consolas</h1>
         <p>
-          De la Magnavox Odyssey al Switch 2: sobremesa, portátiles, ordenadores,
-          arcade, VR y nubes. Entra en una para ver sus juegos.
+          Modelos, revisiones y versiones: de la Odyssey al Switch 2, fat y slim,
+          Lite y OLED, Pro y Digital.
         </p>
       </div>
       {groups.map((group) => (
         <section className="mfr-block" key={group.manufacturer}>
           <h2>{group.manufacturer}</h2>
-          <div className="platform-grid">
-            {group.platforms.map((p) => (
-              <Link className="platform-card" key={p.id} to={`/platform/${p.slug}`}>
-                <strong>{p.name}</strong>
-                <span>
-                  {formatYearRange(p.yearStart, p.yearEnd)} · {TYPE_LABEL[p.type]}
-                  {p.generation ? ` · Gen ${p.generation}` : ''}
-                </span>
-              </Link>
-            ))}
-          </div>
+          {group.families.map((family) => (
+            <div className="platform-grid" key={family[0].family}>
+              {family.map((p) => (
+                <Link className="platform-card has-photo" key={p.slug} to={`/platform/${p.slug}`}>
+                  <PlatformPhoto src={p.image} name={p.name} />
+                  <strong>{p.name}</strong>
+                  <span>
+                    {p.variant ? `${p.variant} · ` : ''}
+                    {p.yearStart}
+                    {p.yearEnd ? `–${p.yearEnd}` : ''}
+                    {' · '}
+                    {TYPE_LABEL[p.type]}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ))}
         </section>
       ))}
     </div>

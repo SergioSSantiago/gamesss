@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { GamePoster, PosterSkeleton } from '../components/GamePoster'
-import { platformBySlug } from '../data/platforms'
+import { PlatformPhoto } from '../components/PlatformPhoto'
+import { TYPE_LABEL, familyOf, platformBySlug } from '../data/platforms'
 import { formatYearRange } from '../lib/format'
 import { gamesOnPlatform } from '../lib/wikidata'
 import type { GameSummary } from '../types'
@@ -11,12 +12,17 @@ export function PlatformPage() {
   const platform = platformBySlug(slug)
   const [games, setGames] = useState<GameSummary[] | null>(null)
   const [page, setPage] = useState(0)
+  const kin = platform ? familyOf(platform).filter((p) => p.slug !== platform.slug) : []
+
+  useEffect(() => {
+    setPage(0)
+  }, [slug])
 
   useEffect(() => {
     if (!platform) return
     let alive = true
     setGames(null)
-    gamesOnPlatform(platform.id, 24, page * 24)
+    gamesOnPlatform(platform.gamesId, 24, page * 24)
       .then((g) => alive && setGames(g))
       .catch(() => alive && setGames([]))
     return () => { alive = false }
@@ -32,14 +38,37 @@ export function PlatformPage() {
 
   return (
     <div className="page">
-      <div className="hero">
-        <p className="game-kicker">{platform.manufacturer}</p>
-        <h1>{platform.name}</h1>
-        <p>
-          {formatYearRange(platform.yearStart, platform.yearEnd)}
-          {platform.aka?.length ? ` · También ${platform.aka.join(', ')}` : ''}
-        </p>
+      <div className="platform-hero">
+        <PlatformPhoto src={platform.image} name={platform.name} className="lg" />
+        <div>
+          <p className="game-kicker">{platform.manufacturer}</p>
+          <h1>{platform.name}</h1>
+          <p>
+            {formatYearRange(platform.yearStart, platform.yearEnd)}
+            {' · '}
+            {TYPE_LABEL[platform.type]}
+            {platform.variant ? ` · ${platform.variant}` : ''}
+            {platform.aka?.length ? ` · También ${platform.aka.join(', ')}` : ''}
+          </p>
+        </div>
       </div>
+
+      {kin.length > 0 && (
+        <section>
+          <div className="section-head"><h2>Modelos y versiones</h2></div>
+          <div className="platform-grid">
+            {kin.map((p) => (
+              <Link className="platform-card has-photo" key={p.slug} to={`/platform/${p.slug}`}>
+                <PlatformPhoto src={p.image} name={p.name} />
+                <strong>{p.name}</strong>
+                <span>{p.variant ?? p.yearStart}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="section-head"><h2>Juegos</h2></div>
       {games === null && <PosterSkeleton count={12} />}
       {games && games.length === 0 && (
         <p className="empty">Aún no hay partidas indexadas para esta máquina, o Wikidata las etiqueta con otro nombre.</p>

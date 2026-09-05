@@ -19,6 +19,10 @@ export type Platform = {
   type: PlatformType
   generation?: number
   aka?: string[]
+  image: string
+  family: string
+  variant?: string
+  gamesId: string
 }
 
 export type GameRef = {

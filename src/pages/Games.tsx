@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { GamePoster, PosterSkeleton } from '../components/GamePoster'
-import { PLATFORMS } from '../data/platforms'
+import { PLATFORMS, catalogPlatforms } from '../data/platforms'
 import { searchGames } from '../lib/wikidata'
 import type { GameSummary } from '../types'
 
@@ -80,9 +80,11 @@ export function Games() {
             <option value="">Todas</option>
             {makers.map((m) => (
               <optgroup key={m.manufacturer} label={m.manufacturer}>
-                {PLATFORMS.filter((p) => p.manufacturer === m.manufacturer).map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
+                {catalogPlatforms()
+                  .filter((p) => p.manufacturer === m.manufacturer)
+                  .map((p) => (
+                    <option key={p.gamesId} value={p.gamesId}>{p.name}</option>
+                  ))}
               </optgroup>
             ))}
           </select>
