@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { GamePoster, PosterSkeleton } from '../components/GamePoster'
 import { PlatformPhoto } from '../components/PlatformPhoto'
+import { arcadeByCategory, ARCADE_CATEGORY_LABEL } from '../data/arcadeCabinets'
 import { TYPE_LABEL, familyOf, platformBySlug } from '../data/platforms'
 import { formatYearRange } from '../lib/format'
 import { gamesOnPlatform } from '../lib/wikidata'
@@ -65,6 +66,29 @@ export function PlatformPage() {
               </Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {platform.slug === 'arcade' && (
+        <section>
+          <div className="section-head">
+            <h2>Bornes, planos y esquemas</h2>
+            <Link to="/arcade">Ver catálogo completo</Link>
+          </div>
+          {arcadeByCategory().slice(0, 2).map((group) => (
+            <div key={group.category} style={{ marginBottom: 18 }}>
+              <p className="game-kicker">{ARCADE_CATEGORY_LABEL[group.category]}</p>
+              <div className="platform-grid">
+                {group.items.slice(0, 6).map((cab) => (
+                  <Link className="platform-card has-photo" key={cab.id} to={`/arcade/${cab.id}`}>
+                    <PlatformPhoto src={cab.image} name={cab.name} />
+                    <strong>{cab.name}</strong>
+                    <span>{cab.dims ?? 'plan / esquema'}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </section>
       )}
 

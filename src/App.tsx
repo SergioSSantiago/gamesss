@@ -12,6 +12,7 @@ import { Lists } from './pages/Lists'
 import { ListPage } from './pages/ListPage'
 import { SignIn } from './pages/SignIn'
 import { Special } from './pages/Special'
+import { Arcade } from './pages/Arcade'
 
 export default function App() {
   return (
@@ -22,6 +23,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/games" element={<Games />} />
             <Route path="/special" element={<Special />} />
+            <Route path="/arcade" element={<Arcade />} />
+            <Route path="/arcade/:id" element={<Arcade />} />
             <Route path="/game/:id" element={<GamePage />} />
             <Route path="/platforms" element={<Platforms />} />
             <Route path="/platform/:slug" element={<PlatformPage />} />

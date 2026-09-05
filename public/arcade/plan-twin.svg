@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" role="img">
+  <rect width="360" height="300" fill="#0e1216"/>
+  <text x="180" y="28" text-anchor="middle" fill="#9ab" font-family="sans-serif" font-size="13" letter-spacing="2">TWIN / VERSUS  ALZADO</text>
+  <path d="M40 60 h120 v40 h-10 v50 h30 v16 h-30 v120 h-70 v-120 h-30 v-16 h30 v-50 h-10 z" fill="#1c2228" stroke="#00e054" stroke-width="2"/>
+  <path d="M200 60 h120 v40 h-10 v50 h30 v16 h-30 v120 h-70 v-120 h-30 v-16 h30 v-50 h-10 z" fill="#1c2228" stroke="#00e054" stroke-width="2"/>
+  <rect x="60" y="110" width="80" height="55" fill="#111" stroke="#def"/>
+  <rect x="220" y="110" width="80" height="55" fill="#111" stroke="#def"/>
+  <text x="100" y="230" text-anchor="middle" fill="#def" font-size="10">1P</text>
+  <text x="260" y="230" text-anchor="middle" fill="#def" font-size="10">2P</text>
+  <text x="180" y="275" text-anchor="middle" fill="#9ab" font-size="10">H 140 × 90 × 190 cm</text>
+</svg>

@@ -439,6 +439,30 @@ h1, h2, h3 { font-weight: 700; letter-spacing: 0.02em; }
   padding: 3px 7px;
   border-radius: 3px;
 }
+.arcade-detail {
+  display: grid;
+  grid-template-columns: minmax(240px, 400px) 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.arcade-plan-fig {
+  margin: 16px 0 0;
+  padding: 0;
+}
+.arcade-plan-fig img {
+  width: 100%;
+  border-radius: 8px;
+  background: #0e1216;
+  border: 1px solid var(--line);
+}
+.arcade-plan-fig figcaption {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.histogram { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
 .histogram i {
   display: block;
   width: 18px;
@@ -451,6 +475,7 @@ h1, h2, h3 { font-weight: 700; letter-spacing: 0.02em; }
   .header-inner { height: auto; flex-wrap: wrap; padding: 10px 0 12px; }
   .header-search { display: block; max-width: none; width: 100%; order: 3; }
   .game-layout { grid-template-columns: 1fr; }
+  .arcade-detail { grid-template-columns: 1fr; }
   .nav { gap: 12px; font-size: 11px; }
   .diary-row { grid-template-columns: 32px 48px 1fr; }
   .diary-row .stars { grid-column: 3; }
