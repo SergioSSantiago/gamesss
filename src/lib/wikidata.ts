@@ -37,6 +37,20 @@ function labelOf(entity: WdEntity, ...langs: string[]): string {
     const value = entity.labels?.[lang]?.value
     if (value) return value
   }
+  // Algunos juegos (p. ej. RE4 remake) solo tienen label en ja u otro idioma
+  for (const lab of Object.values(entity.labels ?? {})) {
+    if (lab?.value) return lab.value
+  }
+  const wiki =
+    entity.sitelinks?.eswiki?.title ||
+    entity.sitelinks?.enwiki?.title ||
+    Object.values(entity.sitelinks ?? {})[0]?.title
+  if (wiki) {
+    return wiki
+      .replace(/_/g, ' ')
+      .replace(/\s*\([^)]*(?:video ?game|videojuego|jeu vid|Computerspiel)[^)]*\)\s*/i, '')
+      .trim() || wiki.replace(/_/g, ' ')
+  }
   return entity.id
 }
 
@@ -117,7 +131,8 @@ async function getEntitiesRaw(ids: string[]): Promise<WdEntity[]> {
       action: 'wbgetentities',
       ids: chunk.join('|'),
       props: 'labels|descriptions|aliases|claims|sitelinks',
-      languages: 'es|en',
+      languages: 'es|en|fr|de|ja',
+      languagefallback: '1',
     })) as { entities?: Record<string, WdEntity> }
     out.push(...Object.values(json.entities ?? {}).filter((e) => e.id))
   }

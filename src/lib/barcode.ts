@@ -11,7 +11,7 @@ export type BarcodeHit = {
   brand?: string
   platform?: string
   igdbId?: number
-  source: 'scandex' | 'openproductsfacts' | 'wikidata' | 'manual'
+  source: 'scandex' | 'upcitemdb' | 'openproductsfacts' | 'wikidata' | 'manual'
   /** Wikidata Q-id si el GTIN está enlazado directamente */
   wikidataId?: string
 }
@@ -77,7 +77,30 @@ type ScanDexApiHit = {
   platform?: string | null
   igdbId?: number | null
   igdbPlatformId?: number | null
-  source: 'scandex'
+  brand?: string | null
+  source: 'scandex' | 'upcitemdb'
+}
+
+/** Variantes de título para buscar en Wikidata tras un hit de barcode. */
+export function titleSearchVariants(name: string): string[] {
+  const base = name.trim()
+  if (!base) return []
+  const out = new Set<string>([base])
+
+  let t = cleanProductTitle(base)
+  if (t) out.add(t)
+
+  t = t
+    .replace(/\b(remake|reboot|hd(\s*remaster)?|ultimate\s*hd(\s*edition)?|wii\s*edition|vr|gold\s*edition|complete\s*edition|definitive\s*edition)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (t) out.add(t)
+
+  // "Resident Evil 4 (2023 video game)" → "Resident Evil 4"
+  t = t.replace(/\s*\([^)]*\)\s*$/g, '').trim()
+  if (t) out.add(t)
+
+  return [...out].filter(Boolean)
 }
 
 async function lookupScanDex(barcode: string): Promise<BarcodeHit | null> {
@@ -92,12 +115,38 @@ async function lookupScanDex(barcode: string): Promise<BarcodeHit | null> {
       barcode: data.barcode || barcode,
       productName: data.name,
       platform: data.platform || undefined,
+      brand: data.brand || undefined,
       igdbId: data.igdbId ?? undefined,
-      source: 'scandex',
+      source: data.source === 'upcitemdb' ? 'upcitemdb' : 'scandex',
     }
   } catch {
     return null
   }
+}
+
+async function searchCatalogForHit(hit: BarcodeHit): Promise<{ query: string; games: GameSummary[] }> {
+  const seed =
+    hit.source === 'scandex'
+      ? hit.productName
+      : cleanProductTitle(hit.productName, hit.brand) || hit.productName
+  // Siempre ampliar: "… Remake" → también "…" (clave para RE4 2023 en Wikidata)
+  const variants = titleSearchVariants(seed)
+  const seen = new Set<string>()
+  const merged: GameSummary[] = []
+  let query = variants[0] || seed
+
+  for (const q of variants) {
+    const list = await searchGames(q, 24)
+    if (!merged.length && list.length) query = q
+    for (const g of list) {
+      if (seen.has(g.id)) continue
+      seen.add(g.id)
+      merged.push(g)
+    }
+    if (merged.length >= 12) break
+  }
+
+  return { query, games: rankGamesForHit(merged, hit) }
 }
 
 async function lookupOpenProducts(barcode: string): Promise<BarcodeHit | null> {
@@ -293,11 +342,7 @@ export async function lookupBarcode(raw: string): Promise<BarcodeLookupResult> {
   }
 
   if (hit) {
-    const query =
-      hit.source === 'scandex'
-        ? hit.productName
-        : cleanProductTitle(hit.productName, hit.brand)
-    const games = rankGamesForHit(await searchGames(query, 24), hit)
+    const { query, games } = await searchCatalogForHit(hit)
     return { barcode: hit.barcode, hit, query, games }
   }
 

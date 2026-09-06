@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 
 const SCANDEX = 'https://scandex.gamery.app/api/v2/lookup'
+const UPCITEMDB = 'https://api.upcitemdb.com/prod/trial/lookup'
 
 function variants(raw: string): string[] {
   const digits = raw.replace(/\D/g, '')
@@ -15,6 +16,35 @@ function variants(raw: string): string[] {
   }
   out.add(digits.replace(/^0+/, '') || digits)
   return [...out]
+}
+
+async function upcItemDbHit(code: string) {
+  const r = await fetch(`${UPCITEMDB}?upc=${encodeURIComponent(code)}`, {
+    headers: { Accept: 'application/json', 'User-Agent': 'Gamesss/1.0 (vite dev)' },
+  })
+  if (!r.ok) return null
+  const data = (await r.json()) as {
+    items?: { title?: string; brand?: string; category?: string }[]
+  }
+  const item = data.items?.[0]
+  if (!item?.title) return null
+  const blob = `${item.title} ${item.category || ''} ${item.brand || ''}`.toLowerCase()
+  if (
+    item.category &&
+    !/game|toy|software|electronic/i.test(item.category) &&
+    !/nintendo|playstation|xbox|capcom|resident|video.?game/.test(blob)
+  ) {
+    return null
+  }
+  return {
+    barcode: code,
+    name: item.title,
+    platform: null,
+    igdbId: null,
+    igdbPlatformId: null,
+    brand: item.brand || null,
+    source: 'upcitemdb' as const,
+  }
 }
 
 /** Dev-only `/api/scandex` so local Vite matches Vercel serverless. */
@@ -63,15 +93,7 @@ function scandexDevPlugin(): Plugin {
             }
             if (r.status === 404 || data.message) continue
             const meta = data.igdb_metadata
-            if (!meta?.name) {
-              if (data.status === 'unmatched') {
-                res.statusCode = 404
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ error: 'unmatched', barcode: code }))
-                return
-              }
-              continue
-            }
+            if (!meta?.name) continue
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
             res.end(
@@ -86,6 +108,17 @@ function scandexDevPlugin(): Plugin {
             )
             return
           }
+
+          for (const code of codes) {
+            const hit = await upcItemDbHit(code)
+            if (hit) {
+              res.statusCode = 200
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify(hit))
+              return
+            }
+          }
+
           res.statusCode = 404
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify({ error: 'not_found', tried: codes }))
@@ -94,7 +127,7 @@ function scandexDevPlugin(): Plugin {
           res.setHeader('Content-Type', 'application/json')
           res.end(
             JSON.stringify({
-              error: 'scandex_unreachable',
+              error: 'barcode_unreachable',
               detail: err instanceof Error ? err.message : 'unknown',
             }),
           )
