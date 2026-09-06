@@ -11,7 +11,7 @@ export type BarcodeHit = {
   brand?: string
   platform?: string
   igdbId?: number
-  source: 'scandex' | 'upcitemdb' | 'openproductsfacts' | 'wikidata' | 'manual'
+  source: 'scandex' | 'pricecharting' | 'upcitemdb' | 'barcodelookup' | 'openproductsfacts' | 'wikidata' | 'manual'
   /** Wikidata Q-id si el GTIN está enlazado directamente */
   wikidataId?: string
 }
@@ -78,7 +78,7 @@ type ScanDexApiHit = {
   igdbId?: number | null
   igdbPlatformId?: number | null
   brand?: string | null
-  source: 'scandex' | 'upcitemdb'
+  source: 'scandex' | 'pricecharting' | 'upcitemdb' | 'barcodelookup'
 }
 
 /** Variantes de título para buscar en Wikidata tras un hit de barcode. */
@@ -111,13 +111,20 @@ async function lookupScanDex(barcode: string): Promise<BarcodeHit | null> {
     if (!res.ok) return null
     const data = (await res.json()) as ScanDexApiHit
     if (!data?.name) return null
+    const allowed = new Set([
+      'scandex',
+      'pricecharting',
+      'upcitemdb',
+      'barcodelookup',
+    ])
+    const source = allowed.has(data.source) ? data.source : 'scandex'
     return {
       barcode: data.barcode || barcode,
       productName: data.name,
       platform: data.platform || undefined,
       brand: data.brand || undefined,
       igdbId: data.igdbId ?? undefined,
-      source: data.source === 'upcitemdb' ? 'upcitemdb' : 'scandex',
+      source,
     }
   } catch {
     return null
@@ -126,7 +133,7 @@ async function lookupScanDex(barcode: string): Promise<BarcodeHit | null> {
 
 async function searchCatalogForHit(hit: BarcodeHit): Promise<{ query: string; games: GameSummary[] }> {
   const seed =
-    hit.source === 'scandex'
+    hit.source === 'scandex' || hit.source === 'pricecharting'
       ? hit.productName
       : cleanProductTitle(hit.productName, hit.brand) || hit.productName
   // Siempre ampliar: "… Remake" → también "…" (clave para RE4 2023 en Wikidata)

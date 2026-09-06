@@ -58,7 +58,7 @@ export function Scan() {
     }
     setBusy(true)
     setError('')
-    setStatus('Consultando ScanDex y el catálogo…')
+    setStatus('Consultando ScanDex, PriceCharting, UPC…')
     setResult(null)
     setPhoto(null)
     setGames(null)
@@ -73,7 +73,7 @@ export function Scan() {
       }
       if (!found.hit) {
         setError(
-          `No hay ficha para ${digits} en ScanDex / Wikidata / Open Products Facts. Escribe el título a mano.`,
+          `No hay ficha para ${digits} en ScanDex / PriceCharting / UPC databases. Escribe el título a mano.`,
         )
       } else if (found.games.length === 0) {
         setError(
@@ -159,7 +159,7 @@ export function Scan() {
       <div className="hero">
         <h1>Añadir desde la caja</h1>
         <p>
-          Escanea el código de barras (ScanDex → catálogo) o haz una foto de la carátula: te
+          Escanea el código de barras (ScanDex, PriceCharting, UPC…) o haz una foto de la carátula: te
           devolvemos el juego para abrirlo y registrarlo.
         </p>
       </div>
