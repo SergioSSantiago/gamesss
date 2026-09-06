@@ -80,6 +80,9 @@ export function Arcade() {
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
               <Link className="btn" to={`/game/${gamePlan.gameId}`}>Ficha del juego</Link>
+              {(gamePlan.id.startsWith('maddog') || gamePlan.id === 'maddog-ii') && (
+                <Link className="btn ghost" to="/special/mad-dog-mccree">Ficha Mad Dog McCree</Link>
+              )}
               <Link className="btn ghost" to="/arcade">Todos los modelos</Link>
             </div>
           </div>
@@ -136,6 +139,11 @@ export function Arcade() {
           volante, guns, dance pad…).
         </p>
       </div>
+
+      <Link className="maddog-banner" to="/special/mad-dog-mccree">
+        <strong>Mad Dog McCree</strong>
+        <span>Ficha especial · Rev. A / Rev. B / CRT / proyección / Mad Dog II</span>
+      </Link>
 
       <div className="status-pills" style={{ marginBottom: 22 }}>
         {FILTERS.map((f) => (

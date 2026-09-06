@@ -30,6 +30,8 @@ export const SPECIAL_GAMES: SpecialGame[] = [
   { id: 'Q248810', tag: 'Simulación infinita' }, // Dwarf Fortress
   { id: 'Q21039924', tag: 'Indie cult' }, // Undertale
   { id: 'Q1195267', tag: 'Microjuegos' }, // WarioWare Mega Microgames
+  { id: 'Q2747251', tag: 'Laserdisc / FMV' }, // Mad Dog McCree
+  { id: 'Q3275126', tag: 'Laserdisc / FMV' }, // Mad Dog II: The Lost Gold
 ]
 
 export const SPECIAL_GAME_IDS = SPECIAL_GAMES.map((g) => g.id)

@@ -13,6 +13,8 @@ import { ListPage } from './pages/ListPage'
 import { SignIn } from './pages/SignIn'
 import { Special } from './pages/Special'
 import { Arcade } from './pages/Arcade'
+import { MadDogMcCree } from './pages/MadDogMcCree'
+import { Scan } from './pages/Scan'
 
 export default function App() {
   return (
@@ -22,7 +24,9 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/games" element={<Games />} />
+            <Route path="/scan" element={<Scan />} />
             <Route path="/special" element={<Special />} />
+            <Route path="/special/mad-dog-mccree" element={<MadDogMcCree />} />
             <Route path="/arcade" element={<Arcade />} />
             <Route path="/arcade/:id" element={<Arcade />} />
             <Route path="/game/:id" element={<GamePage />} />

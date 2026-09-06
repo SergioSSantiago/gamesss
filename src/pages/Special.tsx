@@ -35,6 +35,11 @@ export function Special() {
         </p>
       </div>
 
+      <Link className="maddog-banner" to="/special/mad-dog-mccree">
+        <strong>Mad Dog McCree</strong>
+        <span>Ficha especial · todas las versiones arcade (Rev. A/B, CRT, proyección, Mad Dog II)</span>
+      </Link>
+
       <div className="status-pills" style={{ marginBottom: 22 }}>
         {FILTERS.map((f) => (
           <button key={f} type="button" className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { GamePoster, PosterSkeleton } from '../components/GamePoster'
 import { PLATFORMS, catalogPlatforms } from '../data/platforms'
 import { searchGames } from '../lib/wikidata'
@@ -59,7 +59,11 @@ export function Games() {
     <div className="page">
       <div className="hero">
         <h1>Juegos</h1>
-        <p>Busca en el catálogo mundial. Hay cientos de miles de títulos indexados.</p>
+        <p>
+          Busca en el catálogo mundial,{' '}
+          <Link to="/scan">escanea el código</Link> o{' '}
+          <Link to="/scan">haz una foto</Link> de la caja.
+        </p>
       </div>
       <form onSubmit={submit} className="filters">
         <div className="field" style={{ flex: 1, minWidth: 220 }}>
@@ -91,7 +95,10 @@ export function Games() {
         </div>
         <div className="field" style={{ justifyContent: 'end' }}>
           <label>&nbsp;</label>
-          <button className="btn" type="submit">Buscar</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Link className="btn ghost" to="/scan">Escanear</Link>
+            <button className="btn" type="submit">Buscar</button>
+          </div>
         </div>
       </form>
 
