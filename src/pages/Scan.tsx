@@ -58,7 +58,7 @@ export function Scan() {
     }
     setBusy(true)
     setError('')
-    setStatus('Resolviendo código…')
+    setStatus('Consultando ScanDex y el catálogo…')
     setResult(null)
     setPhoto(null)
     setGames(null)
@@ -68,15 +68,17 @@ export function Scan() {
       const found = await lookupBarcode(digits)
       setResult(found)
       setGames(found.games)
+      if (found.hit) {
+        setFallbackQ(found.query || found.hit.productName)
+      }
       if (!found.hit) {
         setError(
-          `No hay ficha para ${digits} en Open Products Facts ni Wikidata. Escribe el título a mano.`,
+          `No hay ficha para ${digits} en ScanDex / Wikidata / Open Products Facts. Escribe el título a mano.`,
         )
       } else if (found.games.length === 0) {
         setError(
-          `Producto: “${found.hit.productName}”, pero no hubo match en el catálogo. Prueba otro título.`,
+          `Encontrado: “${found.hit.productName}”${found.hit.platform ? ` (${found.hit.platform})` : ''}, pero no hubo match en el catálogo. Corrige el título.`,
         )
-        setFallbackQ(found.query || found.hit.productName)
       }
     } catch {
       setError('No se pudo resolver el código ahora. Reintenta o busca por título.')
@@ -157,8 +159,8 @@ export function Scan() {
       <div className="hero">
         <h1>Añadir desde la caja</h1>
         <p>
-          Escanea el código de barras o haz una foto de la carátula: leemos el título y buscamos el
-          juego para registrarlo.
+          Escanea el código de barras (ScanDex → catálogo) o haz una foto de la carátula: te
+          devolvemos el juego para abrirlo y registrarlo.
         </p>
       </div>
 
@@ -280,7 +282,11 @@ export function Scan() {
         <div className="scan-result-meta">
           <span className="chip">{result.barcode}</span>
           <span className="chip">{result.hit.source}</span>
+          {result.hit.platform && <span className="chip">{result.hit.platform}</span>}
           <strong>{result.hit.productName}</strong>
+          {result.hit.igdbId != null && (
+            <span className="scan-query">IGDB #{result.hit.igdbId}</span>
+          )}
           {result.query && result.query !== result.hit.productName && (
             <span className="scan-query">→ búsqueda: {result.query}</span>
           )}

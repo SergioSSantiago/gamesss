@@ -9,7 +9,9 @@ export type BarcodeHit = {
   barcode: string
   productName: string
   brand?: string
-  source: 'openproductsfacts' | 'wikidata' | 'manual'
+  platform?: string
+  igdbId?: number
+  source: 'scandex' | 'openproductsfacts' | 'wikidata' | 'manual'
   /** Wikidata Q-id si el GTIN está enlazado directamente */
   wikidataId?: string
 }
@@ -48,9 +50,15 @@ export function cleanProductTitle(name: string, brand?: string): string {
   t = t.replace(/\s+/g, ' ')
   // Prefijos / ruido común en Open Products Facts
   t = t.replace(/^(jeu(x)?|video\s*game|juego|game)\s*[:\-–]?\s*/i, '')
-  t = t.replace(/\b(nintendo\s*)?(switch\s*2|switch|wii\s*u|wii|3ds|nds|n64|gamecube|game\s*boy[^,)]*|xbox\s*(series\s*)?[sx]|xbox\s*one|xbox|playstation\s*[1-5]|ps[1-5]|psp|ps\s*vita|steam|pc)\b/gi, ' ')
+  t = t.replace(
+    /\b(nintendo\s*)?(switch\s*2|switch|wii\s*u|wii|3ds|nds|n64|gamecube|game\s*boy[^,)]*|xbox\s*(series\s*)?[sx]|xbox\s*one|xbox|playstation\s*[1-5]|ps[1-5]|psp|ps\s*vita|steam|pc)\b/gi,
+    ' ',
+  )
   t = t.replace(/[([].*?[)\]]/g, ' ')
-  t = t.replace(/\b(edition|édition|deluxe|standard|complete|hits|selects|greatest hits|platinum|essentials)\b/gi, ' ')
+  t = t.replace(
+    /\b(edition|édition|deluxe|standard|complete|hits|selects|greatest hits|platinum|essentials)\b/gi,
+    ' ',
+  )
   if (brand) {
     const re = new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'ig')
     t = t.replace(re, ' ')
@@ -61,6 +69,35 @@ export function cleanProductTitle(name: string, brand?: string): string {
     t = t.replace(/\b\w/g, (c) => c.toUpperCase())
   }
   return t || name.trim()
+}
+
+type ScanDexApiHit = {
+  barcode: string
+  name: string
+  platform?: string | null
+  igdbId?: number | null
+  igdbPlatformId?: number | null
+  source: 'scandex'
+}
+
+async function lookupScanDex(barcode: string): Promise<BarcodeHit | null> {
+  try {
+    const res = await fetch(`/api/scandex?value=${encodeURIComponent(barcode)}`, {
+      headers: { Accept: 'application/json' },
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as ScanDexApiHit
+    if (!data?.name) return null
+    return {
+      barcode: data.barcode || barcode,
+      productName: data.name,
+      platform: data.platform || undefined,
+      igdbId: data.igdbId ?? undefined,
+      source: 'scandex',
+    }
+  } catch {
+    return null
+  }
 }
 
 async function lookupOpenProducts(barcode: string): Promise<BarcodeHit | null> {
@@ -135,7 +172,6 @@ async function lookupWikidataGtin(barcode: string): Promise<BarcodeHit | null> {
       for (const h of hits) {
         const id = h.title
         if (!/^Q\d+$/.test(id)) continue
-        // Confirmar que es videojuego vía SPARQL ligero / wbgetentities en searchGames path
         const labelUrl = new URL(WD_API)
         labelUrl.searchParams.set('action', 'wbgetentities')
         labelUrl.searchParams.set('ids', id)
@@ -208,8 +244,28 @@ async function lookupWikidataGtin(barcode: string): Promise<BarcodeHit | null> {
   }
 }
 
+function rankGamesForHit(games: GameSummary[], hit: BarcodeHit): GameSummary[] {
+  const platformNeedle = (hit.platform || '').toLowerCase()
+  if (!platformNeedle) return games
+
+  const score = (g: GameSummary) => {
+    const plats = g.platforms.map((p) => p.name.toLowerCase()).join(' ')
+    if (plats.includes(platformNeedle)) return 2
+    // fuzzy: "PlayStation 5" ↔ "PS5", "Nintendo Switch" ↔ "Switch"
+    const short = platformNeedle
+      .replace('playstation', 'ps')
+      .replace('nintendo ', '')
+      .replace('xbox series x|s', 'xbox series')
+    if (short && plats.includes(short)) return 1
+    return 0
+  }
+
+  return [...games].sort((a, b) => score(b) - score(a))
+}
+
 /**
  * Resuelve un código de barras de caja → candidatos en el catálogo Wikidata.
+ * Orden: ScanDex → Wikidata GTIN → Open Products Facts → búsqueda por título.
  */
 export async function lookupBarcode(raw: string): Promise<BarcodeLookupResult> {
   const barcode = raw.replace(/\D/g, '')
@@ -217,13 +273,13 @@ export async function lookupBarcode(raw: string): Promise<BarcodeLookupResult> {
     return { barcode, hit: null, query: '', games: [] }
   }
 
-  const wd = await lookupWikidataGtin(barcode)
-  const opf = wd ? null : await lookupOpenProducts(barcode)
-  const hit = wd ?? opf
+  const scandex = await lookupScanDex(barcode)
+  const wd = scandex ? null : await lookupWikidataGtin(barcode)
+  const opf = scandex || wd ? null : await lookupOpenProducts(barcode)
+  const hit = scandex ?? wd ?? opf
 
   if (hit?.wikidataId) {
     const games = await searchGames(hit.productName, 12)
-    // Prioriza el id exacto si aparece; si no, busca por id en resultados o deja la lista
     const exact = games.find((g) => g.id === hit.wikidataId)
     const ordered = exact
       ? [exact, ...games.filter((g) => g.id !== hit.wikidataId)]
@@ -237,8 +293,11 @@ export async function lookupBarcode(raw: string): Promise<BarcodeLookupResult> {
   }
 
   if (hit) {
-    const query = cleanProductTitle(hit.productName, hit.brand)
-    const games = await searchGames(query, 24)
+    const query =
+      hit.source === 'scandex'
+        ? hit.productName
+        : cleanProductTitle(hit.productName, hit.brand)
+    const games = rankGamesForHit(await searchGames(query, 24), hit)
     return { barcode: hit.barcode, hit, query, games }
   }
 
